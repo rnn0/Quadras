@@ -1,0 +1,603 @@
+.layout {
+  min-height: 100vh;
+  position: relative;
+}
+
+.shell {
+  position: relative;
+  z-index: 0;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 1024px;
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 4vw, 2.5rem);
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
+  column-gap: clamp(1.5rem, 4vw, 2.75rem);
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 1fr;
+    max-width: none;
+    padding-inline: clamp(1rem, 4vw, 1.5rem);
+  }
+}
+
+.bgPattern {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 120% 80% at 20% 10%, rgba(232, 165, 75, 0.18), transparent 50%),
+    radial-gradient(ellipse 80% 60% at 85% 90%, rgba(45, 106, 122, 0.35), transparent 45%),
+    var(--bg-deep);
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  padding: clamp(2rem, 6vw, 4rem);
+}
+
+@media (max-width: 900px) {
+  .hero {
+    padding-bottom: 2rem;
+  }
+}
+
+.heroInner {
+  max-width: 32rem;
+}
+
+.heroKicker {
+  font-family: 'Outfit', var(--font, sans-serif);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 1rem;
+}
+
+.heroTitle {
+  font-family: 'Outfit', 'DM Sans', sans-serif;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0 0 1rem;
+}
+
+.heroAccent {
+  display: block;
+  color: var(--accent);
+}
+
+.heroLead {
+  color: var(--text-muted);
+  margin: 0 0 1.5rem;
+  font-size: 1.05rem;
+}
+
+.sports {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sports li {
+  font-size: 0.85rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+}
+
+.panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  backdrop-filter: blur(8px);
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem 2rem 1.75rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.cardWide {
+  max-width: 440px;
+}
+
+.cardHeader {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1.75rem;
+}
+
+.logoMark {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(232, 165, 75, 0.2), rgba(45, 106, 122, 0.25));
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.logoMark svg {
+  width: 26px;
+  height: 26px;
+}
+
+.title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.formError,
+.formSuccess {
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.formError {
+  background: rgba(220, 80, 80, 0.12);
+  border: 1px solid rgba(220, 100, 100, 0.35);
+  color: #f0b0b0;
+}
+
+.formSuccess {
+  background: rgba(80, 180, 120, 0.12);
+  border: 1px solid rgba(100, 200, 140, 0.35);
+  color: #b8e8c8;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 0.95rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--border-subtle);
+  background: rgba(8, 14, 18, 0.55);
+  color: var(--text);
+  font: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input::placeholder {
+  color: rgba(244, 239, 230, 0.35);
+}
+
+.input:hover {
+  border-color: rgba(232, 165, 75, 0.25);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(232, 165, 75, 0.18);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.checkbox input {
+  accent-color: var(--accent);
+  width: 1rem;
+  height: 1rem;
+}
+
+.linkBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+a.linkBtn {
+  display: inline;
+}
+
+.linkBtn:hover {
+  color: var(--accent-hover);
+}
+
+.linkInline {
+  color: var(--accent);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.linkInline:hover {
+  color: var(--accent-hover);
+}
+
+.submit {
+  margin-top: 0.25rem;
+  width: 100%;
+  padding: 0.9rem 1.25rem;
+  border: none;
+  border-radius: 0.65rem;
+  font: inherit;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #1a1208;
+  background: linear-gradient(180deg, var(--accent-hover), var(--accent));
+  box-shadow: 0 4px 20px rgba(232, 165, 75, 0.35);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(232, 165, 75, 0.4);
+}
+
+.submit:active {
+  transform: translateY(0);
+}
+
+.submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 4px 16px rgba(232, 165, 75, 0.2);
+}
+
+.footer {
+  margin: 1.5rem 0 0;
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.adminShell {
+  grid-template-columns: 1fr;
+  max-width: 1240px;
+}
+
+.adminPanel {
+  align-items: center;
+  padding-block: 1.1rem;
+  position: relative;
+}
+
+.adminTopbar {
+  max-width: none;
+  width: 100%;
+  padding: 1.15rem 1.3rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.adminSignOut {
+  margin-top: 0;
+  width: auto;
+  min-width: 120px;
+  padding-inline: 1rem;
+}
+
+.adminCenterWrap {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.adminHeaderCard {
+  max-width: none;
+  margin-bottom: 0.75rem;
+  padding: 1.15rem 1.25rem 1.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.adminSignOutInline {
+  flex-shrink: 0;
+}
+
+.adminGrid {
+  width: 100%;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+}
+
+.adminCard {
+  max-width: none;
+  max-height: calc(100vh - 220px);
+  overflow: auto;
+  padding: 1rem 1.1rem 0.95rem;
+  scrollbar-gutter: stable;
+}
+
+.adminScheduleList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.adminScheduleRow {
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 0.65rem;
+  padding: 0.5rem 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.adminScheduleTimes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(110px, 130px));
+  gap: 0.45rem;
+}
+
+.adminQuadraList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: none;
+  overflow: auto;
+  padding-right: 0.1rem;
+}
+
+.adminQuadraItem {
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.8rem;
+  padding: 0.7rem 0.8rem;
+  background: rgba(255, 255, 255, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.adminReservaLinha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.adminReservaLinha .adminActionBtn {
+  flex-shrink: 0;
+}
+
+.adminQuadraHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.adminBadge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(232, 165, 75, 0.35);
+  background: rgba(232, 165, 75, 0.14);
+  color: #f6d8a5;
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.adminSchedulePreview {
+  margin: 0.2rem 0 0;
+  padding-left: 1rem;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.adminActions {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.adminActionBtn {
+  width: auto;
+  min-width: 140px;
+  margin-top: 0;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.88rem;
+}
+
+.adminActionBtnGhost {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  box-shadow: none;
+}
+
+.adminActionBtnGhost:hover {
+  transform: translateY(-1px);
+  border-color: rgba(232, 165, 75, 0.35);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+
+.userHomeShell {
+  grid-template-columns: 1fr;
+  max-width: 1240px;
+}
+
+.userHomePanel {
+  align-items: flex-start;
+  padding-block: 1.1rem;
+}
+
+.userHomeWrap {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.userHomeHeader {
+  max-width: none;
+  margin-bottom: 0.75rem;
+  padding: 1.15rem 1.25rem 1.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.companyGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.companyCard {
+  max-width: none;
+  padding: 1rem 1.1rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.companyCardSelected {
+  border-color: rgba(232, 165, 75, 0.45);
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 2px rgba(232, 165, 75, 0.18);
+}
+
+.companyTypes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.companyActionBtn {
+  margin-top: auto;
+  width: 100%;
+  font-size: 0.9rem;
+  padding: 0.72rem 0.95rem;
+}
+
+.courtSvg {
+  width: 100%;
+  max-width: 260px;
+  height: auto;
+  margin: 0 auto 0.2rem;
+  display: block;
+  fill: rgba(50, 120, 145, 0.2);
+  stroke: rgba(232, 165, 75, 0.72);
+  stroke-width: 2.2;
+}
+
+@media (max-width: 980px) {
+  .adminGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .companyGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .adminCard {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .adminHeaderCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .userHomeHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .adminScheduleTimes {
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .companyGrid {
+    grid-template-columns: 1fr;
+  }
+}

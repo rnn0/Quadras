@@ -1,0 +1,34 @@
+:root {
+  --bg-deep: #0c1419;
+  --bg-card: rgba(18, 32, 42, 0.72);
+  --border-subtle: rgba(255, 245, 230, 0.12);
+  --text: #f4efe6;
+  --text-muted: rgba(244, 239, 230, 0.62);
+  --accent: #e8a54b;
+  --accent-hover: #f0bb6a;
+  --sand: #c9a66b;
+  --ocean: #2d6a7a;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--text);
+  background-color: var(--bg-deep);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
