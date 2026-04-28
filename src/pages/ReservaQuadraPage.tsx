@@ -23,6 +23,8 @@ type QuadraInfo = {
   descricao: string
 }
 
+type AcessorioOption = 'Nenhum' | 'Bola' | 'Raquete' | 'Raquete e bola'
+
 export function ReservaQuadraPage() {
   const navigate = useNavigate()
   const { empresa: empresaParam, quadraId } = useParams()
@@ -33,6 +35,7 @@ export function ReservaQuadraPage() {
   const [dataReserva, setDataReserva] = useState('')
   const [horaInicio, setHoraInicio] = useState('')
   const [horaFim, setHoraFim] = useState('')
+  const [acessorios, setAcessorios] = useState<AcessorioOption>('Nenhum')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [cancelandoId, setCancelandoId] = useState<number | string | null>(null)
@@ -172,6 +175,7 @@ export function ReservaQuadraPage() {
       user_id: session.user.id,
       inicio: inicioIso,
       fim: fimIso,
+      acessorios: acessorios === 'Nenhum' ? null : acessorios,
     })
     setSaving(false)
 
@@ -183,6 +187,7 @@ export function ReservaQuadraPage() {
     setSuccess('Reserva realizada com sucesso!')
     setHoraInicio('')
     setHoraFim('')
+    setAcessorios('Nenhum')
     await carregarReservasDia()
   }
 
@@ -261,6 +266,19 @@ export function ReservaQuadraPage() {
                         onChange={(e) => setHoraFim(e.target.value)}
                         required
                       />
+                    </label>
+                    <label className={styles.field}>
+                      <span className={styles.label}>Acessorios</span>
+                      <select
+                        className={styles.input}
+                        value={acessorios}
+                        onChange={(e) => setAcessorios(e.target.value as AcessorioOption)}
+                      >
+                        <option value="Nenhum">Nenhum</option>
+                        <option value="Bola">Bola</option>
+                        <option value="Raquete">Raquete</option>
+                        <option value="Raquete e bola">Raquete e bola</option>
+                      </select>
                     </label>
                     <button type="submit" className={styles.submit} disabled={saving}>
                       {saving ? 'Reservando...' : 'Confirmar reserva'}
