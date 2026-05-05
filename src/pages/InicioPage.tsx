@@ -158,6 +158,26 @@ export function InicioPage() {
   const isAdmin = role === 'admin' || empresaOwner
   const empresa = String(metadata.empresa ?? '').trim()
 
+  async function garantirEmpresaAdmin() {
+    if (!session || !isAdmin || !empresa) return
+
+    // Quando o admin foi criado com confirmacao de e-mail, a empresa pode nao ter sido criada no cadastro.
+    // Aqui garantimos que existe uma linha em "empresas" para que usuarios comuns possam listar/selecionar.
+    const { error: insertErr } = await supabase.from('empresas').insert({
+      nome: empresa,
+      admin_user_id: session.user.id,
+    })
+
+    if (!insertErr) return
+
+    // Duplicate key (Postgres). Ignoramos porque a empresa ja existe.
+    if (String((insertErr as { code?: string }).code ?? '') === '23505') return
+
+    setError(
+      `Nao foi possivel vincular/criar a empresa do administrador: ${insertErr.message}. Verifique as politicas RLS na tabela "empresas".`,
+    )
+  }
+
   async function loadQuadras() {
     if (!session || !isAdmin || !empresa) return
     setLoadingQuadras(true)
@@ -242,6 +262,7 @@ export function InicioPage() {
   }
 
   useEffect(() => {
+    void garantirEmpresaAdmin()
     loadQuadras()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user.id, isAdmin, empresa])

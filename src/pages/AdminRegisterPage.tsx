@@ -28,15 +28,26 @@ export function AdminRegisterPage() {
     return tokenFromUrl === expectedToken
   }, [expectedToken, tokenFromUrl])
 
-  async function registrarEmpresaAdmin(empresaNome: string, adminUserId: string | undefined) {
-    if (!adminUserId) return
-    await supabase.from('empresas').upsert(
-      {
-        nome: empresaNome,
-        admin_user_id: adminUserId,
-      },
-      { onConflict: 'nome' },
-    )
+  async function registrarEmpresaAdmin(
+    empresaNome: string,
+    adminUserId: string | undefined,
+  ): Promise<{ ok: true } | { ok: false; message: string }> {
+    if (!adminUserId) {
+      return { ok: false, message: 'Nao foi possivel identificar o usuario administrador.' }
+    }
+    const { error: upsertErr } = await supabase.from('empresas').insert({
+      nome: empresaNome,
+      admin_user_id: adminUserId,
+    })
+    if (!upsertErr) return { ok: true }
+
+    // Se ja existir (empresa ou admin) nao precisamos falhar.
+    if (String((upsertErr as { code?: string }).code ?? '') === '23505') return { ok: true }
+
+    return {
+      ok: false,
+      message: `Administrador cadastrado, mas nao foi possivel criar a empresa automaticamente: ${upsertErr.message}`,
+    }
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -100,14 +111,25 @@ export function AdminRegisterPage() {
       return
     }
 
-    await registrarEmpresaAdmin(empresaTrim, data.user?.id)
+    // Se o Supabase exigir confirmacao de e-mail, normalmente nao existe sessao aqui.
+    // Nesse caso, a insercao em "empresas" costuma falhar por RLS (usuario ainda nao autenticado).
+    // A pagina /inicio faz a criacao da empresa no primeiro login do admin.
+    if (data.session) {
+      const res = await registrarEmpresaAdmin(empresaTrim, data.user?.id)
+      if (!res.ok) {
+        setError(res.message)
+        return
+      }
+    }
 
     if (data.session) {
       navigate('/inicio', { replace: true })
       return
     }
 
-    setSuccess('Administrador cadastrado. Verifique o e-mail para confirmar a conta.')
+    setSuccess(
+      'Administrador cadastrado. Verifique o e-mail para confirmar a conta. A empresa sera vinculada automaticamente no primeiro login.',
+    )
   }
 
   if (!expectedToken || !hasValidToken) {
