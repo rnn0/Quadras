@@ -36,6 +36,7 @@ type Quadra = {
   tipo: TipoQuadra
   created_at: string
   empresa?: string
+  owner_id?: string | null
 }
 
 type EmpresaResumo = {
@@ -135,6 +136,7 @@ export function InicioPage() {
   const [editTipo, setEditTipo] = useState<TipoQuadra>('Vôlei')
   const [editHorariosSemana, setEditHorariosSemana] = useState<HorariosSemana>(horariosPadrao())
   const [savingEdit, setSavingEdit] = useState(false)
+  const [excluindoQuadraId, setExcluindoQuadraId] = useState<number | string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [dataReservasAdmin, setDataReservasAdmin] = useState(dataHojeBrasilYmd)
@@ -161,20 +163,62 @@ export function InicioPage() {
   async function garantirEmpresaAdmin() {
     if (!session || !isAdmin || !empresa) return
 
-    // Quando o admin foi criado com confirmacao de e-mail, a empresa pode nao ter sido criada no cadastro.
-    // Aqui garantimos que existe uma linha em "empresas" para que usuarios comuns possam listar/selecionar.
+    const empresaNome = empresa.trim()
+    if (!empresaNome) return
+
+    // Evita INSERT desnecessario (duplicata / RLS): se ja existe vinculo ou nome, nao criar de novo.
+    const { data: jaPorAdmin, error: errPorAdmin } = await supabase
+      .from('empresas')
+      .select('nome')
+      .eq('admin_user_id', session.user.id)
+      .limit(1)
+
+    if (errPorAdmin) {
+      setError(
+        `Nao foi possivel verificar a empresa do administrador: ${errPorAdmin.message}. Verifique as politicas RLS na tabela "empresas" (SELECT).`,
+      )
+      return
+    }
+    if (jaPorAdmin && jaPorAdmin.length > 0) {
+      setError(null)
+      return
+    }
+
+    const { data: jaPorNome, error: errPorNome } = await supabase
+      .from('empresas')
+      .select('nome')
+      .eq('nome', empresaNome)
+      .limit(1)
+
+    if (errPorNome) {
+      setError(
+        `Nao foi possivel verificar a empresa do administrador: ${errPorNome.message}. Verifique as politicas RLS na tabela "empresas" (SELECT).`,
+      )
+      return
+    }
+    if (jaPorNome && jaPorNome.length > 0) {
+      setError(null)
+      return
+    }
+
+    // Primeiro login apos cadastro com confirmacao de e-mail: cria linha com os dados do cadastro (metadata).
     const { error: insertErr } = await supabase.from('empresas').insert({
-      nome: empresa,
+      nome: empresaNome,
       admin_user_id: session.user.id,
     })
 
-    if (!insertErr) return
+    if (!insertErr) {
+      setError(null)
+      return
+    }
 
-    // Duplicate key (Postgres). Ignoramos porque a empresa ja existe.
-    if (String((insertErr as { code?: string }).code ?? '') === '23505') return
+    if (String((insertErr as { code?: string }).code ?? '') === '23505') {
+      setError(null)
+      return
+    }
 
     setError(
-      `Nao foi possivel vincular/criar a empresa do administrador: ${insertErr.message}. Verifique as politicas RLS na tabela "empresas".`,
+      `Nao foi possivel vincular/criar a empresa do administrador: ${insertErr.message}. Verifique as politicas RLS na tabela "empresas" (INSERT para o proprio usuario). Veja supabase/policies_empresas_admin.sql.`,
     )
   }
 
@@ -185,7 +229,7 @@ export function InicioPage() {
 
     const { data, error: fetchErr } = await supabase
       .from('quadras')
-      .select('id, descricao, horarios, tipo, created_at')
+      .select('id, descricao, horarios, tipo, created_at, owner_id')
       .eq('empresa', empresa)
       .order('created_at', { ascending: false })
 
@@ -443,6 +487,70 @@ export function InicioPage() {
     cancelarEdicao()
     setSuccess('Quadra atualizada com sucesso.')
     await loadQuadras()
+  }
+
+  function quadraECadastroDoUsuario(quadra: Quadra): boolean {
+    if (!session) return false
+    return quadra.owner_id != null && quadra.owner_id === session.user.id
+  }
+
+  async function excluirQuadra(quadra: Quadra) {
+    setError(null)
+    setSuccess(null)
+
+    if (!session || !empresa) {
+      setError('Sessao invalida.')
+      return
+    }
+    if (!quadraECadastroDoUsuario(quadra)) {
+      setError('Voce so pode excluir quadras que voce cadastrou.')
+      return
+    }
+
+    const msg =
+      'Excluir esta quadra? As reservas vinculadas a ela serao removidas. Esta acao nao pode ser desfeita.'
+    if (!window.confirm(msg)) return
+
+    if (editingQuadraId === quadra.id) cancelarEdicao()
+
+    setExcluindoQuadraId(quadra.id)
+
+    const { error: delReservasErr } = await supabase
+      .from('reservas')
+      .delete()
+      .eq('quadra_id', quadra.id)
+      .eq('empresa', empresa)
+
+    if (delReservasErr) {
+      setExcluindoQuadraId(null)
+      setError(`Nao foi possivel remover reservas desta quadra: ${delReservasErr.message}`)
+      return
+    }
+
+    const { data: removidas, error: delQuadraErr } = await supabase
+      .from('quadras')
+      .delete()
+      .eq('id', quadra.id)
+      .eq('empresa', empresa)
+      .eq('owner_id', session.user.id)
+      .select('id')
+
+    setExcluindoQuadraId(null)
+
+    if (delQuadraErr) {
+      setError(`Nao foi possivel excluir a quadra: ${delQuadraErr.message}`)
+      return
+    }
+    if (!removidas?.length) {
+      setError(
+        'Nao foi possivel excluir a quadra. No Supabase, confira politicas RLS de DELETE na tabela quadras para o cadastrador (owner_id). Veja supabase/policies_quadras_delete.sql.',
+      )
+      return
+    }
+
+    setSuccess('Quadra excluida com sucesso.')
+    await loadQuadras()
+    await loadReservasDiaAdmin()
   }
 
   if (session === undefined) {
@@ -722,6 +830,16 @@ export function InicioPage() {
                               >
                                 Editar
                               </button>
+                              {quadraECadastroDoUsuario(quadra) ? (
+                                <button
+                                  type="button"
+                                  className={`${styles.submit} ${styles.adminActionBtn} ${styles.adminActionBtnGhost}`}
+                                  disabled={excluindoQuadraId === quadra.id}
+                                  onClick={() => void excluirQuadra(quadra)}
+                                >
+                                  {excluindoQuadraId === quadra.id ? 'Excluindo...' : 'Excluir'}
+                                </button>
+                              ) : null}
                             </div>
                           </>
                         )}

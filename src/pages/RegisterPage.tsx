@@ -1,12 +1,11 @@
 import { FormEvent, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { PasswordField } from '../components/PasswordField'
+import { getEmailConfirmationRedirectUrl } from '../lib/appUrl'
+import { formatCelularBrFromDigits, onlyDigits } from '../lib/brPhoneMask'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import { mapAuthError } from '../lib/authErrors'
 import styles from './LoginPage.module.css'
-
-function onlyDigits(s: string): string {
-  return s.replace(/\D/g, '')
-}
 
 export function RegisterPage() {
   const navigate = useNavigate()
@@ -53,6 +52,7 @@ export function RegisterPage() {
       email: email.trim(),
       password,
       options: {
+        emailRedirectTo: getEmailConfirmationRedirectUrl(),
         data: {
           nome: nomeTrim,
           celular: digits,
@@ -156,38 +156,26 @@ export function RegisterPage() {
                   inputMode="numeric"
                   placeholder="(00) 00000-0000"
                   value={celular}
-                  onChange={(e) => setCelular(e.target.value)}
+                  onChange={(e) => setCelular(formatCelularBrFromDigits(e.target.value))}
                   required
                 />
               </label>
-              <label className={styles.field}>
-                <span className={styles.label}>Senha</span>
-                <input
-                  className={styles.input}
-                  type="password"
-                  name="password"
-                  autoComplete="new-password"
-                  placeholder="Mínimo 6 caracteres"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-              </label>
-              <label className={styles.field}>
-                <span className={styles.label}>Confirmar senha</span>
-                <input
-                  className={styles.input}
-                  type="password"
-                  name="confirmPassword"
-                  autoComplete="new-password"
-                  placeholder="Repita a senha"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-              </label>
+              <PasswordField
+                label="Senha"
+                name="password"
+                autoComplete="new-password"
+                placeholder="Mínimo 6 caracteres"
+                value={password}
+                onChange={setPassword}
+              />
+              <PasswordField
+                label="Confirmar senha"
+                name="confirmPassword"
+                autoComplete="new-password"
+                placeholder="Repita a senha"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+              />
 
               <button type="submit" className={styles.submit} disabled={loading}>
                 {loading ? 'Cadastrando…' : 'Cadastrar'}

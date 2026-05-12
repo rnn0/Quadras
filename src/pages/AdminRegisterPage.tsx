@@ -1,12 +1,11 @@
 import { FormEvent, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { PasswordField } from '../components/PasswordField'
+import { getEmailConfirmationRedirectUrl } from '../lib/appUrl'
+import { formatCelularBrFromDigits, onlyDigits } from '../lib/brPhoneMask'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import { mapAuthError } from '../lib/authErrors'
 import styles from './LoginPage.module.css'
-
-function onlyDigits(s: string): string {
-  return s.replace(/\D/g, '')
-}
 
 export function AdminRegisterPage() {
   const navigate = useNavigate()
@@ -35,13 +34,43 @@ export function AdminRegisterPage() {
     if (!adminUserId) {
       return { ok: false, message: 'Nao foi possivel identificar o usuario administrador.' }
     }
+    const nome = empresaNome.trim()
+    if (!nome) {
+      return { ok: false, message: 'Nome da empresa invalido.' }
+    }
+
+    const { data: jaPorAdmin, error: e1 } = await supabase
+      .from('empresas')
+      .select('nome')
+      .eq('admin_user_id', adminUserId)
+      .limit(1)
+    if (e1) {
+      return {
+        ok: false,
+        message: `Nao foi possivel verificar a empresa: ${e1.message}`,
+      }
+    }
+    if (jaPorAdmin && jaPorAdmin.length > 0) return { ok: true }
+
+    const { data: jaPorNome, error: e2 } = await supabase
+      .from('empresas')
+      .select('nome')
+      .eq('nome', nome)
+      .limit(1)
+    if (e2) {
+      return {
+        ok: false,
+        message: `Nao foi possivel verificar a empresa: ${e2.message}`,
+      }
+    }
+    if (jaPorNome && jaPorNome.length > 0) return { ok: true }
+
     const { error: upsertErr } = await supabase.from('empresas').insert({
-      nome: empresaNome,
+      nome,
       admin_user_id: adminUserId,
     })
     if (!upsertErr) return { ok: true }
 
-    // Se ja existir (empresa ou admin) nao precisamos falhar.
     if (String((upsertErr as { code?: string }).code ?? '') === '23505') return { ok: true }
 
     return {
@@ -95,6 +124,7 @@ export function AdminRegisterPage() {
       email: email.trim(),
       password,
       options: {
+        emailRedirectTo: getEmailConfirmationRedirectUrl(),
         data: {
           nome: nomeTrim,
           celular: digits,
@@ -229,7 +259,7 @@ export function AdminRegisterPage() {
                   inputMode="numeric"
                   placeholder="(00) 00000-0000"
                   value={celular}
-                  onChange={(e) => setCelular(e.target.value)}
+                  onChange={(e) => setCelular(formatCelularBrFromDigits(e.target.value))}
                   required
                 />
               </label>
@@ -246,34 +276,22 @@ export function AdminRegisterPage() {
                   required
                 />
               </label>
-              <label className={styles.field}>
-                <span className={styles.label}>Senha</span>
-                <input
-                  className={styles.input}
-                  type="password"
-                  name="password"
-                  autoComplete="new-password"
-                  placeholder="Mínimo 6 caracteres"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-              </label>
-              <label className={styles.field}>
-                <span className={styles.label}>Confirmar senha</span>
-                <input
-                  className={styles.input}
-                  type="password"
-                  name="confirmPassword"
-                  autoComplete="new-password"
-                  placeholder="Repita a senha"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-              </label>
+              <PasswordField
+                label="Senha"
+                name="password"
+                autoComplete="new-password"
+                placeholder="Mínimo 6 caracteres"
+                value={password}
+                onChange={setPassword}
+              />
+              <PasswordField
+                label="Confirmar senha"
+                name="confirmPassword"
+                autoComplete="new-password"
+                placeholder="Repita a senha"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+              />
 
               <button type="submit" className={styles.submit} disabled={loading}>
                 {loading ? 'Cadastrando…' : 'Cadastrar administrador'}

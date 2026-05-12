@@ -27,6 +27,12 @@ export function ForgotPasswordPage() {
       return
     }
 
+    const formatoOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)
+    if (!formatoOk) {
+      setError('Informe um e-mail válido (ex.: nome@provedor.com).')
+      return
+    }
+
     setLoading(true)
     const { error: resetErr } = await supabase.auth.resetPasswordForEmail(trimmed, {
       redirectTo: getPasswordResetRedirectUrl(),
@@ -34,6 +40,13 @@ export function ForgotPasswordPage() {
     setLoading(false)
 
     if (resetErr) {
+      const status = (resetErr as { status?: number }).status
+      if (status === 429) {
+        setError(
+          'Muitas tentativas de recuperação de senha em pouco tempo. Aguarde alguns minutos e tente de novo. No Supabase, em Authentication, confira limites de envio de e-mail.',
+        )
+        return
+      }
       setError(mapAuthError(resetErr.message))
       return
     }
